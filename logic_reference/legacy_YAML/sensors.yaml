@@ -1,0 +1,19 @@
+#integral batterie in
+- platform: integration
+  source: sensor.battery_power_in
+  name: "Energy Battery Power In"
+  unique_id: "energy_battery_power_in"
+  method: left
+  unit_prefix: k
+  unit_time: h
+  round: 3
+
+#integral batterie out
+- platform: integration
+  source: sensor.battery_power_out
+  name: "Energy Battery Power Out"
+  unique_id: "energy_battery_power_out"
+  method: left
+  unit_prefix: k
+  unit_time: h
+  round: 3

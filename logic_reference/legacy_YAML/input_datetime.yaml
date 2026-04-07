@@ -1,0 +1,10 @@
+# ============================================
+# Dates de référence Urban Solar
+# ============================================
+# Date du dernier relevé Urban Solar
+# Saisir la date du relevé fournisseur (pas la date de saisie)
+releve_urban_solar_date:
+  name: "Date relevé Urban Solar"
+  has_date: true
+  has_time: false
+  icon: mdi:calendar-check

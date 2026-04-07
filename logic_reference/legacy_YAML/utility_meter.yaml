@@ -1,0 +1,24 @@
+# Import elec mensuel
+energy_imported_monthly:
+  source: sensor.energy_imported
+  cycle: monthly
+  unique_id: energy_imported_monthly
+
+#elec batterie annuel
+energy_from_battery_yearly:
+  source: sensor.energy_battery_power_out
+  cycle: yearly
+  unique_id: energy_from_battery_yearly
+
+#elec batterie mensuel
+energy_from_battery_monthly:
+  source: sensor.energy_battery_power_out
+  cycle: monthly
+  unique_id: energy_from_battery_monthly
+
+#cout annuel electricité
+cout_total_annuel:
+  source: sensor.cout_mensuel_total
+  cycle: yearly
+  name: "cout total annuel"
+  unique_id: cout_total_annuel

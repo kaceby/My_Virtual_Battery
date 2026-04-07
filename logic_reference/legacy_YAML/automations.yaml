@@ -1,0 +1,41 @@
+- id: "recalage_batterie_virtuelle"
+  alias: "Batterie Virtuelle : Recalage automatique"
+  mode: single
+  trigger:
+    - trigger: state
+      entity_id: input_number.releve_urban_solar
+  conditions:
+    # 1. On vérifie que la valeur est un nombre (0 ou plus)
+    # Si la conversion échoue, float renvoie -1, ce qui bloque la condition.
+    - condition: template
+      value_template: "{{ states('input_number.releve_urban_solar') | float(-1) >= 0 }}"
+
+    # 2. Sécurité au démarrage : on ne déclenche que si l'état précédent était un chiffre
+    # (évite le déclenchement quand l'entité passe de 'unknown' à sa valeur stockée)
+    - condition: template
+      value_template: "{{ trigger.from_state.state | is_number }}"
+  actions:
+    # On force la mise à jour des capteurs SQL
+    - action: homeassistant.update_entity
+      target:
+        entity_id:
+          - sensor.in_au_moment_du_releve
+          - sensor.out_au_moment_du_releve
+    - delay: "00:00:02"
+    # Calcul et application du nouvel offset
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.offset_batterie_virtuelle
+      data:
+        value: >
+          {% set in_passe = states('sensor.in_au_moment_du_releve') | float(none) %}
+          {% set out_passe = states('sensor.out_au_moment_du_releve') | float(none) %}
+          {% set releve = states('input_number.releve_urban_solar') | float(0) %}
+
+          {% if in_passe is not none and out_passe is not none %}
+            {{ (releve - (in_passe - out_passe)) | round(3) }}
+          {% else %}
+            {# Si le SQL n'a rien trouvé, on garde l'offset actuel pour ne rien casser #}
+            {{ states('input_number.offset_batterie_virtuelle') | float(0) }}
+          {% endif %}
+

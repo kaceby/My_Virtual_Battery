@@ -1,0 +1,148 @@
+- sensor:
+    #calcul la conso acheté
+    - name: "Power Grid Real Cost"
+      unique_id: "power_grid_real_cost"
+      unit_of_measurement: "W"
+      device_class: power
+      state: >
+        {% set utility_pwr = states('sensor.utility_power') | float(0) %}
+        {% set solde_batterie = states('sensor.batterie_virtuelle_solde') | float(0) %}
+
+        {# Si le solde batterie est supérieur à 0.1 kWh, on considère qu'on ne paye pas #}
+        {% if solde_batterie > 0.1 %}
+          0
+        {% else %}
+          {# Si la batterie est vide, on affiche la puissance tirée sur le réseau #}
+          {{ [utility_pwr, 0] | max }}
+        {% endif %}
+      availability: >
+        {{ is_number(states('sensor.utility_power')) and is_number(states('sensor.batterie_virtuelle_solde')) }}
+    
+    
+# calcule conso total importé
+    - name: "Utility Power"
+      state: >
+        {% set p = states('sensor.votre_production') | float(0) %}
+        {% set c = states('sensor.votre_consumption') | float(0) %}
+        {{ [ (c - p), 0 ] | max }}
+      unit_of_measurement: "W"
+      unique_id: "utility_power"
+      icon: "mdi:flash"
+
+#compteur battery in
+    - name: "Battery Power In"
+      availability: "{{ is_number(states('sensor.net_power')) }}"
+      state: >
+        {% set net = states('sensor.net_power') | float(0) %}
+        {{ [net, 0] | max }}
+      unit_of_measurement: "W"
+      icon: "mdi:battery-plus"
+      unique_id: "battery_power_in_unique"
+  
+#compteur battery out
+    - name: "Battery Power Out"
+      availability: "{{ is_number(states('sensor.net_power')) }}"
+      state: >
+        {% set net = states('sensor.net_power') | float(0) %}
+        {% set solde = states('sensor.batterie_virtuelle_solde') | float(0) %}
+        {% if net < 0 and solde > 0 %}
+          {{ net | abs }}
+        {% else %}
+          0
+        {% endif %}
+      unit_of_measurement: "W"
+      icon: "mdi:battery-minus"
+      unique_id: "battery_power_out_unique"
+
+# Calcul de la puissance nette
+    - name: "Net Power"
+      unique_id: "net_power_unique"
+      unit_of_measurement: "W"
+      icon: "mdi:flash"
+      state: >
+        {% set prod = states('sensor.votre_production') | float(0) %}
+        {% set cons = states('sensor.votre_consumption') | float(0) %}
+        {{ prod - cons }}
+
+    #Calcul du solde batterie virtuelle
+    - name: "Batterie Virtuelle Solde"
+      unique_id: "batterie_virtuelle_solde"
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total
+      state: >
+        {% set in = states('sensor.energy_battery_power_in') | float(0) %}
+        {% set out = states('sensor.energy_battery_power_out') | float(0) %}
+        {% set offset_state = states('input_number.offset_batterie_virtuelle') %}
+        {% set offset = offset_state | float(none) %}
+        {% if offset is none %}
+          {{ states('sensor.batterie_virtuelle_solde') }}
+        {% else %}
+          {{ [ (in - out + offset), 0 ] | max | round(2) }}
+        {% endif %}
+
+  # Calcul de l'export pour energie.
+    - name: "Index Export"
+      state: >
+        {% set production = states('sensor.votre_production') | int %}
+        {% set consumption = states('sensor.votre_consumption') | int %}
+        {{ ((production - consumption) / 1000) if (production - consumption) > 0 else 0 }}
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+      unique_id: "index_export"
+      icon: "mdi:flash"
+
+# TARIFS ==========================================================
+    # prix du kWh Urban solar
+    - name: "Prix kWh Urban Solar"
+      unique_id: "prix_kwh_urban_solar"
+      unit_of_measurement: "EUR/kWh"
+      state: >
+        {% set solde = states('sensor.batterie_virtuelle_solde') | float(0) %}
+        {% set p_stock = states('input_number.tarif_urban_stock') | float(0) %}
+        {% set p_achat = states('input_number.tarif_urban_achat') | float(0) %}
+        {{ p_stock if solde > 0.1 else p_achat }}
+
+    #Calcul du cout mensuel elec (batterie inclue)
+    - name: "Cout mensuel Total"
+      availability: >
+        {{ is_number(states('input_number.tarif_urban_stock')) and is_number(states('input_number.tarif_urban_achat')) }}
+      state: >
+        {# Récupération des Inputs #}
+        {% set p_stock = states('input_number.tarif_urban_stock') | float(0) %}
+        {% set p_achat = states('input_number.tarif_urban_achat') | float(0) %}
+        {% set abo_ttc = states('input_number.tarif_abonnement_mensuel_ttc') | float(0) %}
+        {% set opt_ht_kwc = states('input_number.tarif_option_batterie_ht_par_kwc') | float(0) %}
+        {% set kwc_install = states('input_number.installation_puissance_kwc') | float(0) %}
+
+        {# --- DONNÉES ÉNERGIE --- #}
+        {% set import_total = states('sensor.energy_imported_monthly') | float(0) %}
+        {% set depuis_batterie = states('sensor.energy_from_battery_monthly') | float(0) %}
+
+        {# --- CALCUL FIXE --- #}
+        {% set cout_option_ttc = kwc_install * opt_ht_kwc * 1.20 %}
+        {% set cost_subscription = abo_ttc + cout_option_ttc %}
+
+        {# --- CALCUL CONSOMMATION --- #}
+        {# On retire ce qui vient de la batterie de l'import total pour avoir l'achat réel #}
+        {% set kwh_achat_reel = [ (import_total - depuis_batterie), 0 ] | max %}
+
+        {% set cost_grid = kwh_achat_reel * p_achat %}
+        {% set cost_battery = depuis_batterie * p_stock %}
+
+        {# --- TOTAL FINAL --- #}
+        {{ (cost_subscription + cost_grid + cost_battery) | round(2) }}
+      unit_of_measurement: "€"
+      icon: "mdi:currency-eur"
+      unique_id: "Cout_total_mensuel"
+
+    #Calcul du cout utilisation batterie
+    - name: "Cout mensuel Batterie"
+      state: >
+        {% set depuis_batterie = states('sensor.energy_from_battery_monthly') | float(0) %}
+        {% set p_stock = states('input_number.tarif_urban_stock') | float(0) %}
+        {{ (depuis_batterie * p_stock) | round(2) }}
+      unit_of_measurement: "€"
+      icon: "mdi:currency-eur"
+      unique_id: "Cout_batterie_mensuel"
