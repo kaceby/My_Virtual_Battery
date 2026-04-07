@@ -1,0 +1,10 @@
+{
+  "domain": "virtual_battery",
+  "name": "My_Virtual_Battery",
+  "codeowners": ["Kaceby"],
+  "config_flow": true,
+  "documentation": "https://github.com/kaceby/My_Virtual_Battery",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/kaceby/My_Virtual_Battery/issues",
+  "version": "0.1.0"
+}
