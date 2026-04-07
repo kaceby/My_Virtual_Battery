@@ -16,7 +16,8 @@ Pour un rendu optimal comme sur la capture d'écran, il est recommandé d'utilis
 
 L'intégration `MyVirtualBattery` fournit les entités nécessaires pour alimenter les champs "Individual" ou "Battery" de cette carte.
 
-📂 Ressources Techniques
+📂 Ressources Techniques 
+
 Vous trouverez dans le [dossier](https://github.com/kaceby/My_Virtual_Battery/tree/main/logic_reference) les fichiers YAML originaux. Ils servent de spécification fonctionnelle :
     sensors_logic.yaml : La gestion des flux de puissance.
     battery_logic.yaml : L'algorithme de gestion du stock et des tarifs.
