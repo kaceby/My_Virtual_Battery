@@ -3,6 +3,7 @@
  LOGIQUE DE RECALAGE (OFFSET DYNAMIQUE)
 
  ==========================================================
+
  Objectif : Aligner le solde HA sur l'index réel du fournisseur.
  Problème : Le calcul local dérive par rapport au compteur Enedis/Fournisseur.
  Solution : Calculer un "Offset" de correction à une date T précise.
@@ -71,3 +72,5 @@
  - Le Solde ne peut jamais être négatif : max(Solde, 0) 
  - Si le déstockage est impossible (Batterie < 0.1 kWh), 
    le capteur 'Out' doit cesser de compter. 
+
+Les fichier origineaux YAML sont situer [ICI](https://github.com/kaceby/My_Virtual_Battery/tree/main/logic_reference/legacy_YAML) 
