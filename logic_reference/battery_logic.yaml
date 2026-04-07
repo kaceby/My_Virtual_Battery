@@ -33,3 +33,5 @@
 # - sensor.batterie_virtuelle_solde (kWh)
 # - sensor.cout_mensuel_total (€)
 # - sensor.prix_kwh_actuel (€/kWh) : Dynamique selon l'état du solde
+
+Les fichier origineaux YAML sont situer .[ici].( 
