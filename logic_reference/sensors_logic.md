@@ -3,6 +3,7 @@
  LOGIQUE DES FLUX D'ÉNERGIE (PUISSANCE -> ÉNERGIE)
 
  ==========================================================
+
  Cette étape est le moteur qui alimente la batterie virtuelle.
 
  ----------------------------------------------------------
