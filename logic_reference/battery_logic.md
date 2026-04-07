@@ -1,0 +1,40 @@
+ ==========================================================
+
+ LOGIQUE MÉTIER DE LA BATTERIE ET TARIFICATION
+ 
+ ==========================================================
+
+ Cette section gère l'affichage du stock et la facturation théorique.
+
+ 1. CALCUL DU SOLDE TEMPS RÉEL
+ ----------------------------------------------------------
+ Le solde est la somme des flux plus l'ajustement manuel (Offset).
+ Formule : Solde = (Energy_In - Energy_Out) + Offset
+ - Unité : kWh 
+ - Sécurité : Le solde est bridé à 0 minimum.
+
+ 2. SEUIL DE DÉSTOCKAGE (Règle Urban Solar)
+ ----------------------------------------------------------
+ Un seuil de 0.1 kWh est appliqué pour éviter les micro-décharges.
+ - Si Solde > 0.1 kWh : On utilise l'énergie stockée 
+ - Si Solde <= 0.1 kWh : On achète l'énergie au réseau 
+
+ 3. CALCUL DU COÛT MENSUEL TOTAL (€)
+ ----------------------------------------------------------
+ Le coût est divisé en trois parties:
+ A. FRAIS FIXES :
+    (Abonnement_Mensuel_TTC) + (Puissance_kWc * Prix_Option_HT * 1.20) 
+
+ B. CONSOMMATION RÉELLE (Achat Réseau) :
+    (Énergie_Importée_Totale - Énergie_Déstockée) * Tarif_Achat_Réseau
+
+ C. COÛT DE DÉSTOCKAGE (Taxes/Acheminement) :
+    Énergie_Déstockée * Tarif_Déstockage 
+
+ 4. CAPTEURS DE SORTIE (Entities)
+ ----------------------------------------------------------
+ - sensor.batterie_virtuelle_solde (kWh)
+ - sensor.cout_mensuel_total (€)
+ - sensor.prix_kwh_actuel (€/kWh) : Dynamique selon l'état du solde
+
+Les fichier origineaux YAML sont situer [ICI](https://github.com/kaceby/My_Virtual_Battery/tree/main/logic_reference/legacy_YAML) 
