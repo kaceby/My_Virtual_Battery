@@ -15,3 +15,9 @@ L'intégration gère le calcul du solde en utilisant trois composants clés :
 Pour un rendu optimal comme sur la capture d'écran, il est recommandé d'utiliser la carte Lovelace [power-flow-card-plus](https://github.com/flixlix/power-flow-card-plus) disponible sur HACS. 
 
 L'intégration `MyVirtualBattery` fournit les entités nécessaires pour alimenter les champs "Individual" ou "Battery" de cette carte.
+
+📂 Ressources Techniques
+Vous trouverez dans le dossier /logic_reference du dépôt les fichiers YAML originaux. Ils servent de spécification fonctionnelle :
+    sensors_logic.yaml : La gestion des flux de puissance.
+    battery_logic.yaml : L'algorithme de gestion du stock et des tarifs.
+    recalibration_logic.yaml : La méthode SQL pour le recalage historique (point crucial du projet).
