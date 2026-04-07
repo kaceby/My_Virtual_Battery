@@ -1,6 +1,12 @@
 ![Dashboard Preview](dashboard.png)
 
 # My_Virtual_Battery
+
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/kaceby/My_Virtual_Battery?style=for-the-badge)
+![GitHub last commit](https://img.shields.io/github/last-commit/kaceby/My_Virtual_Battery?style=for-the-badge&color=orange)
+![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg?style=for-the-badge)
+![HACS](https://img.shields.io/badge/HACS-Custom-blue.svg?style=for-the-badge)
+
 Ce projet vise à transformer un prototype complexe basé sur du YAML en une intégration officielle Home Assistant (Custom Component).
 
 Le but est de simuler une Batterie Virtuelle (type Urban Solar Design ou JPME) pour les propriétaires de panneaux solaires. Contrairement aux batteries physiques, ce système stocke numériquement votre surplus sur le réseau et vous permet de le "déstocker" plus tard, avec une gestion précise des taxes d'acheminement et des recalages sur factures réelles.
