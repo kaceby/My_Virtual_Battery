@@ -1,0 +1,27 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configuration de la Batterie Virtuelle",
+        "data": {
+          "name": "Nom de l'installation",
+          "import_sensor": "Capteur d'importation (kWh)",
+          "export_sensor": "Capteur d'exportation (kWh)",
+          "unit_price_buy": "Prix du kWh acheté (€)",
+          "unit_price_tax": "Taxe d'acheminement stock (€)",
+          "kwc_size": "Puissance installée (kWc)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery_balance": {
+        "name": "Solde de la batterie"
+      },
+      "monthly_cost": {
+        "name": "Coût mensuel total"
+      }
+    }
+  }
+}
