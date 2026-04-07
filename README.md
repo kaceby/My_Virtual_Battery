@@ -43,6 +43,6 @@ Objectif final : Une installation via HACS, une configuration via Config Flow (U
 # 🤝 Comment aider ?
 
 Le projet cherche actuellement un développeur Python pour :
-    - Créer le config_flow.py pour une configuration simplifiée.
-    - Importer la logique de calcul dans un coordinator.py.
-    - Implémenter le service de recalage via l'API recorder.
+- Créer le config_flow.py pour une configuration simplifiée.
+- Importer la logique de calcul dans un coordinator.py.
+- Implémenter le service de recalage via l'API recorder.
