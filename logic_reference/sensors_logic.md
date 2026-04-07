@@ -36,3 +36,5 @@
 
  Création d'un index 'Total Increasing' pour la compatibilité HA :
  Formule : (Production - Consommation) / 1000
+
+Les fichier origineaux YAML sont situer [ICI](https://github.com/kaceby/My_Virtual_Battery/tree/main/logic_reference/legacy_YAML) 
