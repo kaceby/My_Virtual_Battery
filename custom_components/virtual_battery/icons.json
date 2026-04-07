@@ -1,0 +1,8 @@
+{
+  "entity": {
+    "sensor": {
+      "battery_balance": "mdi:battery-clock",
+      "monthly_cost": "mdi:currency-eur"
+    }
+  }
+}
