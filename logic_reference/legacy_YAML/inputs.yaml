@@ -1,0 +1,73 @@
+# ====================================
+# Batterie Virtuelle Urban Solar
+# ====================================
+# Offset de correction entre HA et le relevé fournisseur
+# Valeur initiale : recalage du 13 mars 2026 (relevé Urban Solar = 0 kWh)
+# Ne pas modifier manuellement — mis à jour automatiquement par l'automation de recalage
+offset_batterie_virtuelle:
+  name: "Offset Batterie Virtuelle"
+  min: -10000
+  max: 10000
+  step: 0.001
+  unit_of_measurement: kWh
+  icon: mdi:battery-sync
+
+# Relevé mensuel Urban Solar
+# À mettre à jour chaque mois à réception du relevé fournisseur
+# Déclenche automatiquement le recalage de l'offset
+releve_urban_solar:
+  name: "Relevé Urban Solar"
+  min: 0
+  max: 10000
+  step: 0.01
+  mode: box
+  unit_of_measurement: kWh
+  icon: mdi:solar-power
+# Tarifs energie
+# Tarif plein pot quand la batterie est vide
+tarif_urban_achat:
+  name: "Tarif Achat Réseau"
+  min: 0
+  max: 1
+  step: 0.0001
+  mode: box
+  unit_of_measurement: "€/kWh"
+  icon: mdi:currency-eur
+
+# Tarif de "déstockage" (acheminement/taxes)
+tarif_urban_stock:
+  name: "Tarif Déstockage"
+  min: 0
+  max: 1
+  step: 0.0001
+  mode: box
+  unit_of_measurement: "€/kWh"
+  icon: mdi:piston
+
+# --- ABONNEMENTS ET FIXES ---
+tarif_abonnement_mensuel_ttc:
+  name: "Abonnement Mensuel TTC"
+  min: 0
+  max: 100
+  step: 0.01
+  mode: box
+  unit_of_measurement: "€"
+  icon: mdi:cash-check
+
+tarif_option_batterie_ht_par_kwc:
+  name: "Option Batterie HT / kWc"
+  min: 0
+  max: 10
+  step: 0.01
+  mode: box
+  unit_of_measurement: "€/kWc"
+  icon: mdi:battery-clock
+
+installation_puissance_kwc:
+  name: "Puissance Installation"
+  min: 0
+  max: 30
+  step: 0.1
+  mode: box
+  unit_of_measurement: "kWc"
+  icon: mdi:solar-panel
