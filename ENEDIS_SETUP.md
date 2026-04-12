@@ -185,7 +185,7 @@ Une fois les IDs confirmés,
 
 ## 7. Automation de synchro automatique
 
-👉 Voir [`YAML/Automations.yaml`](YAML/Automations.yaml) — adapter avec vos entities.
+👉 Voir [`YAML/automations.yaml`](YAML/automations.yaml) — adapter avec vos entities.
 
 ---
 
