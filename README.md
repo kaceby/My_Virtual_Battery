@@ -2,20 +2,61 @@
 
 # My_Virtual_Battery
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/kaceby/My_Virtual_Battery?style=for-the-badge)
+
+![Home Assistant](https://img.shields.io/badge/Home%20Assistant-Project-41BDF5?style=for-the-badge&logo=home-assistant&logoColor=white)
+![Type](https://img.shields.io/badge/YAML-Based-blue?style=for-the-badge)
+![Battery](https://img.shields.io/badge/Virtual%20Battery-Simulation-success?style=for-the-badge)
+![Accuracy](https://img.shields.io/badge/Drift-Corrected-brightgreen?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Production%20Ready-success?style=for-the-badge)
+![Audience](https://img.shields.io/badge/Target-Advanced%20Users-orange?style=for-the-badge)
+
+---
+
+![GitHub stars](https://img.shields.io/github/stars/kaceby/My_Virtual_Battery?style=for-the-badge)
+![GitHub forks](https://img.shields.io/github/forks/kaceby/My_Virtual_Battery?style=for-the-badge)
+![GitHub issues](https://img.shields.io/github/issues/kaceby/My_Virtual_Battery?style=for-the-badge)
+![GitHub closed issues](https://img.shields.io/github/issues-closed/kaceby/My_Virtual_Battery?style=for-the-badge)
 ![GitHub last commit](https://img.shields.io/github/last-commit/kaceby/My_Virtual_Battery?style=for-the-badge&color=orange)
-![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg?style=for-the-badge)
-![HACS](https://img.shields.io/badge/HACS-Custom-blue.svg?style=for-the-badge)
+![GitHub repo size](https://img.shields.io/github/repo-size/kaceby/My_Virtual_Battery?style=for-the-badge)
 
-## 📊 Visualisation recommandée
-Pour un rendu optimal comme sur la capture d'écran, il est recommandé d'utiliser la carte Lovelace [power-flow-card-plus](https://github.com/flixlix/power-flow-card-plus) disponible sur HACS. 
-
-L'intégration `MyVirtualBattery` fournit les entités nécessaires pour alimenter les champs "Individual" ou "Battery" de cette carte.
+---
 
 # 🔋 Batterie Virtuelle Home Assistant
 
 Système de **batterie virtuelle** basé sur les données **Enphase** et **Enedis/Linky**,
 avec correction automatique de dérive quotidienne via les index officiels Enedis.
+
+# ⚡Fonctionnalités principales
+
+
+🔄 Conversion et intégration des flux énergétiques (W → kWh)
+
+📊 Simulation du stockage et déstockage d’énergie
+
+💰 Calculs financiers intégrés :
+
+ - coût de stockage
+ - abonnement
+ - valorisation de l’énergie
+
+📉 Gestion de la dérive (correction automatique)
+
+🧮 Recalage des données via le recorder Home Assistant (SQL)
+
+📈 Suivi cohérent avec les données réelles fournisseur
+
+🔧 Configuration 100% personnalisable
+
+---
+
+🧠 Philosophie du projet
+
+Contrairement aux solutions propriétaires, ce projet vise à offrir :
+
+Transparence totale des calculs
+Indépendance vis-à-vis d’un fournisseur
+Compréhension fine de son autoconsommation
+Contrôle complet de sa stratégie énergétique
 
 ---
 
@@ -33,6 +74,13 @@ Enphase (temps réel)
   (vérité terrain temps réel)              Synchro Enedis       Recalage Urban Solar
                                            (automatique J-1)    (manuel, relevé fournisseur)
 ```
+
+Le projet repose entièrement sur les briques natives de Home Assistant :
+
+integration (Riemann) pour le calcul d’énergie
+template sensors pour la logique métier
+utility_meter pour le suivi énergétique
+recorder + SQL pour le recalage des données
 
 ---
 
@@ -92,6 +140,13 @@ détail production si synchro Enedis, solde batterie).
 - Bot **Telegram** configuré dans Home Assistant
 - Organisation des fichier YAML dans configuration.yaml (!include ***)
 - `Render` reglé a 15J pour les appoints manuels
+
+---
+
+## 📊 Visualisation recommandée
+Pour un rendu optimal comme sur la capture d'écran, il est recommandé d'utiliser la carte Lovelace [power-flow-card-plus](https://github.com/flixlix/power-flow-card-plus) disponible sur HACS. 
+
+L'intégration `MyVirtualBattery` fournit les entités nécessaires pour alimenter les champs "Individual" ou "Battery" de cette carte.
 
 ---
 
