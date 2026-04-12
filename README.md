@@ -90,6 +90,8 @@ détail production si synchro Enedis, solde batterie).
 - Compte Enedis avec token **[Conso API](https://conso.boris.sh/)**
 - Onduleur **Enphase** avec intégration Home Assistant
 - Bot **Telegram** configuré dans Home Assistant
+- Organisation des fichier YAML dans configuration.yaml (!include ***)
+- `Render` reglé a 15J pour les appoints manuels
 
 ---
 
