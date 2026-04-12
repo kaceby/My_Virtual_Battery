@@ -116,7 +116,21 @@ détail production si synchro Enedis, solde batterie).
 2. Renseigner votre `chat_id` Telegram dans `automations.yaml`
 3. Mettre à jour le PRM et le token dans la config HA Linky
 4. Ajuster `input_number.offset_batterie_virtuelle` avec votre valeur initiale
+5. Remplacer les placesholder
 
+---
+
+## Placeholder
+
+| Placeholder | À remplacer par |
+|---|---|
+| `YOUR_METADATA_ID_CONSO` / `YOUR_METADATA_ID_PROD` | IDs SQLite de vos statistiques Linky |
+| `YOUR_PRODUCTION_SENSOR` / `YOUR_CONSUMPTION_SENSOR` | Vos sensors Enphase (ou autre onduleur) |
+| `YOUR_BATTERY_IN/OUT_ENTITY_ID` | Vos sensors d'intégrales batterie |
+| `YOUR_DATETIME_ENTITY_ID` | Votre input_datetime de relevé |
+| `YOUR_TELEGRAM_CHAT_ID` | Votre chat_id Telegram |
+
+---
 
 ## 📂 Ressources Techniques 
 
