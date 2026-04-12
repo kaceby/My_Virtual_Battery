@@ -120,6 +120,14 @@ détail production si synchro Enedis, solde batterie).
 
 ## 📂 Ressources Techniques 
 
-Vous trouverez dans le [dossier](https://github.com/kaceby/My_Virtual_Battery/tree/main/logic_reference/legacy_YAML)
+| Fichier | Rôle |
+|---|---|
+| [`YAML/automations.yaml`](YAML/automations.yaml) | Synchro Enedis, recalage Urban Solar, notification Telegram |
+| [`YAML/sql.yaml`](YAML/sql.yaml) | Sensors SQL : index Linky, historique batterie |
+| [`YAML/template.yaml`](YAML/template.yaml) | Calculs temps réel : solde, puissances, coûts |
+| [`YAML/sensors.yaml`](YAML/sensors.yaml) | Intégrales énergie batterie |
+| [`YAML/utility_meter.yaml`](YAML/utility_meter.yaml) | Compteurs cycliques |
+| [`YAML/inputs.yaml`](YAML/inputs.yaml) | Paramètres : offset, tarifs, relevés |
+| [`YAML/input_datetime.yaml`](YAML/input_datetime.yaml) | Date de référence relevé Urban Solar |
 
 
