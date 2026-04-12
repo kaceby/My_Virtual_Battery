@@ -1,0 +1,35 @@
+# ==============================================================
+# BATTERIE VIRTUELLE — SENSORS (platform: integration)
+# ==============================================================
+# Placeholders à remplacer avant utilisation :
+#
+#   YOUR_BATTERY_POWER_IN_SENSOR   → sensor de puissance entrante
+#                                    batterie virtuelle en W
+#                                    (ex: sensor.battery_power_in)
+#   YOUR_BATTERY_POWER_OUT_SENSOR  → sensor de puissance sortante
+#                                    batterie virtuelle en W
+#                                    (ex: sensor.battery_power_out)
+#
+# Ces deux sensors doivent être définis dans template.yaml
+# avant d'être utilisés ici comme source d'intégration.
+# ==============================================================
+
+# Intégrale de l'énergie entrante en batterie virtuelle (kWh)
+- platform: integration
+  source: YOUR_BATTERY_POWER_IN_SENSOR
+  name: "Energy Battery Power In"
+  unique_id: "energy_battery_power_in"
+  method: left
+  unit_prefix: k
+  unit_time: h
+  round: 3
+
+# Intégrale de l'énergie sortante de la batterie virtuelle (kWh)
+- platform: integration
+  source: YOUR_BATTERY_POWER_OUT_SENSOR
+  name: "Energy Battery Power Out"
+  unique_id: "energy_battery_power_out"
+  method: left
+  unit_prefix: k
+  unit_time: h
+  round: 3

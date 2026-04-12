@@ -1,0 +1,163 @@
+# ==============================================================
+# BATTERIE VIRTUELLE — AUTOMATIONS
+# ==============================================================
+# Placeholders à remplacer avant utilisation :
+#   YOUR_TELEGRAM_CHAT_ID  → votre chat_id Telegram (ex: -1234567890)
+# ==============================================================
+
+# --------------------------------------------------------------
+# Recalage manuel via relevé fournisseur (Urban Solar ou autre)
+# Déclencheur : modification de input_number.releve_urban_solar
+# --------------------------------------------------------------
+- id: recalage_batterie_virtuelle
+  alias: "Batterie Virtuelle : Recalage automatique"
+  mode: single
+  trigger:
+    - trigger: state
+      entity_id: input_number.releve_urban_solar
+  conditions:
+    - condition: template
+      value_template: "{{ states('input_number.releve_urban_solar') | float(-1) >= 0 }}"
+    - condition: template
+      value_template: "{{ trigger.from_state.state | is_number }}"
+  actions:
+    - action: homeassistant.update_entity
+      target:
+        entity_id:
+          - sensor.in_au_moment_du_releve
+          - sensor.out_au_moment_du_releve
+    - delay: "00:00:02"
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.offset_batterie_virtuelle
+      data:
+        value: >
+          {% set in_passe = states('sensor.in_au_moment_du_releve') | float(none) %}
+          {% set out_passe = states('sensor.out_au_moment_du_releve') | float(none) %}
+          {% set releve = states('input_number.releve_urban_solar') | float(0) %}
+          {% if in_passe is not none and out_passe is not none %}
+            {{ (releve - (in_passe - out_passe)) | round(3) }}
+          {% else %}
+            {# SQL n'a rien trouvé : on conserve l'offset actuel pour ne rien casser #}
+            {{ states('input_number.offset_batterie_virtuelle') | float(0) }}
+          {% endif %}
+
+
+# --------------------------------------------------------------
+# Notification Telegram à chaque changement d'offset
+# Indépendante de la source du changement (Enedis ou manuel)
+# --------------------------------------------------------------
+- id: notify_batterie_offset_change
+  alias: "Batterie Virtuelle : Notification Changement Offset"
+  mode: restart
+  trigger:
+    - trigger: state
+      entity_id: input_number.offset_batterie_virtuelle
+  condition:
+    - condition: template
+      value_template: >
+        {{ trigger.from_state is not none and
+           trigger.from_state.state not in ['unknown', 'unavailable'] }}
+  action:
+    - delay: "00:00:02"
+    - action: telegram_bot.send_message
+      data:
+        chat_id: YOUR_TELEGRAM_CHAT_ID
+        parse_mode: markdown
+        message: >
+          {% set offset = states('input_number.offset_batterie_virtuelle') | float(0) %}
+          {% set in = states('sensor.energy_battery_power_in') | float(0) %}
+          {% set out = states('sensor.energy_battery_power_out') | float(0) %}
+          {% set solde = (in - out + offset) | round(2) %}
+          {% set ancien_offset = trigger.from_state.state | float(0) %}
+          {% set delta = (offset - ancien_offset) | round(2) %}
+
+          {% set heure = now().hour %}
+          {% if heure >= 10 and heure < 12 %}
+            {% set source = "Synchro Enedis" %}
+            {% set source_icon = "⚡" %}
+          {% else %}
+            {% set source = "Recalage Fournisseur" %}
+            {% set source_icon = "☀️" %}
+          {% endif %}
+
+          {{ source_icon }} *Mise à jour Batterie Virtuelle*
+          📌 Source : {{ source }}
+
+          🔄 *Correction appliquée*
+          Ancien offset : {{ ancien_offset }} kWh
+          Nouvel offset : {{ offset }} kWh
+          Delta : {% if delta > 0 %}+{% endif %}{{ delta }} kWh
+
+          {% if heure >= 10 and heure < 12 %}
+          📊 *Production hier*
+          Enedis : {{ states('sensor.linky_production_hier') | float(0) }} kWh
+          Local : {{ (states('sensor.battery_in_hier_minuit') | float(0) - states('sensor.battery_in_avant_hier_minuit') | float(0)) | round(2) }} kWh
+          {% endif %}
+
+          🔋 *Batterie Virtuelle*
+          Stock actuel : *{{ solde }} kWh*
+
+
+# --------------------------------------------------------------
+# Synchro automatique quotidienne avec les index Enedis (J-1)
+# Déclenché à 10h30, après la mise à jour de HA Linky (6h-10h)
+# Corrige la dérive entre capteur local et index officiel Enedis
+# Limite de sécurité : 5 kWh max par correction
+# --------------------------------------------------------------
+- id: sync_batterie_enedis_quotidien
+  alias: "Batterie Virtuelle : Synchro Enedis Quotidienne"
+  mode: single
+
+  trigger:
+    - trigger: time
+      at: "10:30:00"
+
+  condition:
+    # Anti-redémarrage : le sensor SQL ne se met pas à jour au boot
+    - condition: template
+      value_template: >
+        {{ (as_timestamp(now()) - as_timestamp(states.sensor.linky_production_hier.last_changed)) > 300 }}
+
+    # Données Enedis disponibles et valides
+    - condition: template
+      value_template: >
+        {{ states('sensor.linky_production_hier') | float(-1) > 0 }}
+
+    # Données SQL locales disponibles
+    - condition: template
+      value_template: >
+        {{ states('sensor.battery_in_hier_minuit') not in ['unknown', 'unavailable'] and
+           states('sensor.battery_in_avant_hier_minuit') not in ['unknown', 'unavailable'] }}
+
+    # Limite de sécurité : écart max 5 kWh par jour
+    - condition: template
+      value_template: >
+        {% set enedis = states('sensor.linky_production_hier') | float(0) %}
+        {% set ha_hier = states('sensor.battery_in_hier_minuit') | float(0) %}
+        {% set ha_avant_hier = states('sensor.battery_in_avant_hier_minuit') | float(0) %}
+        {% set ecart = (enedis - (ha_hier - ha_avant_hier)) | abs %}
+        {{ ecart < 5 }}
+
+  action:
+    - action: homeassistant.update_entity
+      target:
+        entity_id:
+          - sensor.linky_production_hier
+          - sensor.battery_in_hier_minuit
+          - sensor.battery_in_avant_hier_minuit
+
+    - delay: "00:00:03"
+
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.offset_batterie_virtuelle
+      data:
+        value: >
+          {% set enedis_prod_hier = states('sensor.linky_production_hier') | float(0) %}
+          {% set ha_hier = states('sensor.battery_in_hier_minuit') | float(0) %}
+          {% set ha_avant_hier = states('sensor.battery_in_avant_hier_minuit') | float(0) %}
+          {% set ha_prod_hier = ha_hier - ha_avant_hier %}
+          {% set ecart = enedis_prod_hier - ha_prod_hier %}
+          {% set offset_actuel = states('input_number.offset_batterie_virtuelle') | float(0) %}
+          {{ (offset_actuel + ecart) | round(2) }}

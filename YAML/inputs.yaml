@@ -1,0 +1,95 @@
+# ==============================================================
+# BATTERIE VIRTUELLE — INPUT NUMBERS
+# ==============================================================
+# Ces inputs sont les paramètres configurables du système.
+# Valeurs à renseigner selon votre installation et vos tarifs.
+# ==============================================================
+
+# --------------------------------------------------------------
+# BATTERIE VIRTUELLE
+# --------------------------------------------------------------
+
+# Offset de correction entre HA et le relevé fournisseur
+# Mis à jour automatiquement par les automations de recalage
+# Ne pas modifier manuellement sauf initialisation
+offset_batterie_virtuelle:
+  name: "Offset Batterie Virtuelle"
+  min: -10000
+  max: 10000
+  step: 0.001
+  unit_of_measurement: kWh
+  icon: mdi:battery-sync
+
+# Relevé du dernier index fournisseur
+# À mettre à jour à réception du relevé mensuel fournisseur
+# Déclenche automatiquement le recalage de l'offset
+releve_urban_solar:
+  name: "Relevé Fournisseur"
+  min: 0
+  max: 10000
+  step: 0.01
+  mode: box
+  unit_of_measurement: kWh
+  icon: mdi:solar-power
+
+# --------------------------------------------------------------
+# TARIFS ÉNERGIE
+# --------------------------------------------------------------
+
+# Tarif d'achat réseau (quand batterie virtuelle vide)
+tarif_achat_reseau:
+  name: "Tarif Achat Réseau"
+  min: 0
+  max: 1
+  step: 0.0001
+  mode: box
+  unit_of_measurement: "€/kWh"
+  icon: mdi:currency-eur
+
+# Tarif de déstockage batterie (acheminement + taxes uniquement)
+tarif_destockage:
+  name: "Tarif Déstockage Batterie"
+  min: 0
+  max: 1
+  step: 0.0001
+  mode: box
+  unit_of_measurement: "€/kWh"
+  icon: mdi:piston
+
+# --------------------------------------------------------------
+# ABONNEMENTS ET COÛTS FIXES
+# --------------------------------------------------------------
+
+# Abonnement mensuel TTC (hors option batterie)
+tarif_abonnement_mensuel_ttc:
+  name: "Abonnement Mensuel TTC"
+  min: 0
+  max: 200
+  step: 0.01
+  mode: box
+  unit_of_measurement: "€"
+  icon: mdi:cash-check
+
+# Option batterie HT par kWc installé
+tarif_option_batterie_ht_par_kwc:
+  name: "Option Batterie HT / kWc"
+  min: 0
+  max: 10
+  step: 0.01
+  mode: box
+  unit_of_measurement: "€/kWc"
+  icon: mdi:battery-clock
+
+# --------------------------------------------------------------
+# INSTALLATION
+# --------------------------------------------------------------
+
+# Puissance de l'installation solaire en kWc
+installation_puissance_kwc:
+  name: "Puissance Installation"
+  min: 0
+  max: 30
+  step: 0.1
+  mode: box
+  unit_of_measurement: "kWc"
+  icon: mdi:solar-panel

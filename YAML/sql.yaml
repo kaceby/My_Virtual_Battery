@@ -1,0 +1,142 @@
+# ==============================================================
+# BATTERIE VIRTUELLE — SQL SENSORS
+# ==============================================================
+# Placeholders à remplacer avant utilisation :
+#
+#   YOUR_METADATA_ID_CONSO      → ID numérique de vos statistiques
+#   YOUR_METADATA_ID_PROD         de consommation et production Linky
+#                                 À récupérer via SQLite Web :
+#                                 SELECT id, statistic_id, name
+#                                 FROM statistics_meta
+#                                 WHERE statistic_id LIKE '%VOTRE_PRM%';
+#
+#   YOUR_BATTERY_IN_ENTITY_ID   → entity_id de votre sensor d'énergie
+#   YOUR_BATTERY_IN_ENTITY_ID     entrante/sortante batterie virtuelle
+#                                 (ex: sensor.energy_battery_power_in)
+#
+#   YOUR_DATETIME_ENTITY_ID     → entity_id de l'input_datetime utilisé
+#                                 pour le recalage fournisseur
+#                                 (ex: input_datetime.releve_urban_solar_date)
+# ==============================================================
+
+
+# ==============================================================
+# RECALAGE FOURNISSEUR
+# Récupère la valeur des sensors batterie à une date précise
+# pour calculer l'offset au moment du relevé fournisseur
+# ==============================================================
+- name: "In au moment du releve"
+  query: >
+    SELECT s.state 
+    FROM states s
+    JOIN states_meta m ON s.metadata_id = m.metadata_id
+    WHERE m.entity_id = 'YOUR_BATTERY_IN_ENTITY_ID'
+    AND s.last_updated_ts <= '{{ state_attr('YOUR_DATETIME_ENTITY_ID', 'timestamp') }}'
+    ORDER BY s.last_updated_ts DESC LIMIT 1;
+  column: "state"
+  unit_of_measurement: "kWh"
+
+- name: "Out au moment du releve"
+  query: >
+    SELECT s.state 
+    FROM states s
+    JOIN states_meta m ON s.metadata_id = m.metadata_id
+    WHERE m.entity_id = 'YOUR_BATTERY_OUT_ENTITY_ID'
+    AND s.last_updated_ts <= '{{ state_attr('YOUR_DATETIME_ENTITY_ID', 'timestamp') }}'
+    ORDER BY s.last_updated_ts DESC LIMIT 1;
+  column: "state"
+  unit_of_measurement: "kWh"
+
+
+# ==============================================================
+# INDEX LINKY — CONSOMMATION
+# ==============================================================
+- name: "Linky - Conso hier"
+  query: >
+    SELECT ROUND(SUM(state) / 1000.0, 2) AS kwh
+    FROM statistics
+    WHERE metadata_id = YOUR_METADATA_ID_CONSO
+    AND date(datetime(start_ts,'unixepoch','localtime')) = date('now','localtime','-1 day');
+  column: "kwh"
+  unit_of_measurement: "kWh"
+
+- name: "Linky - Conso mois en cours"
+  query: >
+    SELECT ROUND(SUM(state) / 1000.0, 2) AS kwh
+    FROM statistics
+    WHERE metadata_id = YOUR_METADATA_ID_CONSO
+    AND strftime('%Y-%m', datetime(start_ts,'unixepoch','localtime'))
+        = strftime('%Y-%m', 'now', 'localtime');
+  column: "kwh"
+  unit_of_measurement: "kWh"
+
+- name: "Linky - Conso année en cours"
+  query: >
+    SELECT ROUND(SUM(state) / 1000.0, 2) AS kwh
+    FROM statistics
+    WHERE metadata_id = YOUR_METADATA_ID_CONSO
+    AND strftime('%Y', datetime(start_ts,'unixepoch','localtime'))
+        = strftime('%Y', 'now', 'localtime');
+  column: "kwh"
+  unit_of_measurement: "kWh"
+
+
+# ==============================================================
+# INDEX LINKY — PRODUCTION
+# ==============================================================
+- name: "Linky - Production hier"
+  query: >
+    SELECT ROUND(SUM(state) / 1000.0, 2) AS kwh
+    FROM statistics
+    WHERE metadata_id = YOUR_METADATA_ID_PROD
+    AND date(datetime(start_ts,'unixepoch','localtime')) = date('now','localtime','-1 day');
+  column: "kwh"
+  unit_of_measurement: "kWh"
+
+- name: "Linky - Production mois en cours"
+  query: >
+    SELECT ROUND(SUM(state) / 1000.0, 2) AS kwh
+    FROM statistics
+    WHERE metadata_id = YOUR_METADATA_ID_PROD
+    AND strftime('%Y-%m', datetime(start_ts,'unixepoch','localtime'))
+        = strftime('%Y-%m', 'now', 'localtime');
+  column: "kwh"
+  unit_of_measurement: "kWh"
+
+- name: "Linky - Production année en cours"
+  query: >
+    SELECT ROUND(SUM(state) / 1000.0, 2) AS kwh
+    FROM statistics
+    WHERE metadata_id = YOUR_METADATA_ID_PROD
+    AND strftime('%Y', datetime(start_ts,'unixepoch','localtime'))
+        = strftime('%Y', 'now', 'localtime');
+  column: "kwh"
+  unit_of_measurement: "kWh"
+
+
+# ==============================================================
+# HISTORIQUE BATTERIE — RECALAGE DÉRIVE QUOTIDIENNE
+# Récupère la dernière valeur connue de J-1 et J-2
+# pour calculer la production locale de la veille
+# ==============================================================
+- name: "Battery In hier minuit"
+  query: >
+    SELECT s.state 
+    FROM states s
+    JOIN states_meta m ON s.metadata_id = m.metadata_id
+    WHERE m.entity_id = 'YOUR_BATTERY_IN_ENTITY_ID'
+    AND date(datetime(s.last_updated_ts, 'unixepoch', 'localtime')) = date('now', 'localtime', '-1 day')
+    ORDER BY s.last_updated_ts DESC LIMIT 1;
+  column: "state"
+  unit_of_measurement: "kWh"
+
+- name: "Battery In avant hier minuit"
+  query: >
+    SELECT s.state 
+    FROM states s
+    JOIN states_meta m ON s.metadata_id = m.metadata_id
+    WHERE m.entity_id = 'YOUR_BATTERY_IN_ENTITY_ID'
+    AND date(datetime(s.last_updated_ts, 'unixepoch', 'localtime')) = date('now', 'localtime', '-2 day')
+    ORDER BY s.last_updated_ts DESC LIMIT 1;
+  column: "state"
+  unit_of_measurement: "kWh"

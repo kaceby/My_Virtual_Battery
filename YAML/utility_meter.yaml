@@ -1,0 +1,49 @@
+# ==============================================================
+# BATTERIE VIRTUELLE — UTILITY METERS
+# ==============================================================
+# Ces compteurs cycliques sont utilisés pour le calcul des coûts
+# mensuels et le suivi annuel de la batterie virtuelle.
+#
+# Placeholders à remplacer avant utilisation :
+#
+#   YOUR_ENERGY_IMPORTED_SENSOR  → sensor d'énergie importée du réseau
+#                                  (ex: sensor.energy_imported)
+#   YOUR_BATTERY_OUT_SENSOR      → sensor d'énergie sortante batterie
+#                                  (ex: sensor.energy_battery_power_out)
+#   YOUR_BATTERY_IN_SENSOR       → sensor d'énergie entrante batterie
+#                                  (ex: sensor.energy_battery_power_in)
+#   YOUR_MONTHLY_COST_SENSOR     → sensor de coût mensuel total
+#                                  (ex: sensor.cout_mensuel_total)
+# ==============================================================
+
+# Énergie importée du réseau — cycle mensuel
+energy_imported_monthly:
+  source: YOUR_ENERGY_IMPORTED_SENSOR
+  cycle: monthly
+  unique_id: energy_imported_monthly
+
+# Énergie déstockée de la batterie — cycle mensuel
+energy_from_battery_monthly:
+  source: YOUR_BATTERY_OUT_SENSOR
+  cycle: monthly
+  unique_id: energy_from_battery_monthly
+
+# Énergie déstockée de la batterie — cycle annuel
+energy_from_battery_yearly:
+  source: YOUR_BATTERY_OUT_SENSOR
+  cycle: yearly
+  unique_id: energy_from_battery_yearly
+
+# Énergie stockée dans la batterie — cycle annuel
+# Utilisé pour comparaison avec les index Enedis annuels
+energy_in_yearly:
+  source: YOUR_BATTERY_IN_SENSOR
+  cycle: yearly
+  unique_id: energy_in_yearly
+
+# Coût total électricité — cycle annuel
+cout_total_annuel:
+  source: YOUR_MONTHLY_COST_SENSOR
+  cycle: yearly
+  name: "Cout total annuel"
+  unique_id: cout_total_annuel

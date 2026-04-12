@@ -1,0 +1,16 @@
+# ==============================================================
+# BATTERIE VIRTUELLE — INPUT DATETIMES
+# ==============================================================
+# Date de référence pour le recalage fournisseur.
+# Utilisée par les sensors SQL pour retrouver la valeur
+# des intégrales batterie à l'instant du relevé fournisseur.
+# ==============================================================
+
+# Date du dernier relevé fournisseur
+# À renseigner au moment de la saisie du relevé dans inputs.yaml
+# Format : YYYY-MM-DD
+releve_fournisseur_date:
+  name: "Date relevé Fournisseur"
+  has_date: true
+  has_time: false
+  icon: mdi:calendar-check

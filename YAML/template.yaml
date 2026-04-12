@@ -1,0 +1,201 @@
+# ==============================================================
+# BATTERIE VIRTUELLE — TEMPLATE SENSORS
+# ==============================================================
+# Placeholders à remplacer avant utilisation :
+#
+#   YOUR_PRODUCTION_SENSOR     → sensor de puissance production solaire
+#                                (ex: sensor.envoy_XXXXXX_current_power_production)
+#   YOUR_CONSUMPTION_SENSOR    → sensor de puissance consommation totale
+#                                (ex: sensor.envoy_XXXXXX_current_power_consumption)
+#   YOUR_NET_POWER_SENSOR      → sensor de puissance nette (prod - conso)
+#                                calculé dans ce fichier : sensor.net_power
+#   YOUR_BATTERY_CAPACITY      → capacité max de la batterie virtuelle en kWh
+#                                (utilisé pour limiter le solde si souhaité)
+# ==============================================================
+
+    # ----------------------------------------------------------
+    # PUISSANCES
+    # ----------------------------------------------------------
+
+    # Puissance nette : positive = surplus, négative = déficit
+    - name: "Net Power"
+      unique_id: "net_power_unique"
+      unit_of_measurement: "W"
+      icon: "mdi:flash"
+      state: >
+        {% set prod = states('YOUR_PRODUCTION_SENSOR') | float(0) %}
+        {% set cons = states('YOUR_CONSUMPTION_SENSOR') | float(0) %}
+        {{ prod - cons }}
+
+    # Puissance importée du réseau (toujours positive ou nulle)
+    - name: "Utility Power"
+      unique_id: "utility_power"
+      unit_of_measurement: "W"
+      icon: "mdi:flash"
+      state: >
+        {% set prod = states('YOUR_PRODUCTION_SENSOR') | float(0) %}
+        {% set cons = states('YOUR_CONSUMPTION_SENSOR') | float(0) %}
+        {{ [cons - prod, 0] | max }}
+
+    # Puissance actuelle nette (signée, pour affichage)
+    - name: "Actual Power"
+      unit_of_measurement: "W"
+      icon: "mdi:flash"
+      state: >
+        {% set prod = states('YOUR_PRODUCTION_SENSOR') | float(0) %}
+        {% set cons = states('YOUR_CONSUMPTION_SENSOR') | float(0) %}
+        {{ '%0.0f' | format(cons - prod) }}
+
+    # Puissance entrante batterie virtuelle
+    # = surplus solaire tant que la batterie n'est pas pleine
+    - name: "Battery Power In"
+      unique_id: "battery_power_in_unique"
+      unit_of_measurement: "W"
+      icon: "mdi:battery-plus"
+      availability: "{{ is_number(states('sensor.net_power')) }}"
+      state: >
+        {% set net = states('sensor.net_power') | float(0) %}
+        {{ [net, 0] | max }}
+
+    # Puissance sortante batterie virtuelle
+    # = déficit couvert par la batterie si solde > 0
+    - name: "Battery Power Out"
+      unique_id: "battery_power_out_unique"
+      unit_of_measurement: "W"
+      icon: "mdi:battery-minus"
+      availability: "{{ is_number(states('sensor.net_power')) }}"
+      state: >
+        {% set net = states('sensor.net_power') | float(0) %}
+        {% set solde = states('sensor.batterie_virtuelle_solde') | float(0) %}
+        {% if net < 0 and solde > 0 %}
+          {{ net | abs }}
+        {% else %}
+          0
+        {% endif %}
+
+    # Puissance réellement achetée au réseau
+    # = 0 si la batterie virtuelle peut couvrir le déficit
+    - name: "Power Grid Real Cost"
+      unique_id: "power_grid_real_cost"
+      unit_of_measurement: "W"
+      device_class: power
+      availability: >
+        {{ is_number(states('sensor.utility_power')) and
+           is_number(states('sensor.batterie_virtuelle_solde')) }}
+      state: >
+        {% set utility_pwr = states('sensor.utility_power') | float(0) %}
+        {% set solde_batterie = states('sensor.batterie_virtuelle_solde') | float(0) %}
+        {% if solde_batterie > 0.1 %}
+          0
+        {% else %}
+          {{ [utility_pwr, 0] | max }}
+        {% endif %}
+
+    # ----------------------------------------------------------
+    # BATTERIE VIRTUELLE
+    # ----------------------------------------------------------
+
+    # Solde batterie virtuelle = in - out + offset de correction
+    - name: "Batterie Virtuelle Solde"
+      unique_id: "batterie_virtuelle_solde"
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total
+      state: >
+        {% set in = states('sensor.energy_battery_power_in') | float(0) %}
+        {% set out = states('sensor.energy_battery_power_out') | float(0) %}
+        {% set offset_state = states('input_number.offset_batterie_virtuelle') %}
+        {% set offset = offset_state | float(none) %}
+        {% if offset is none %}
+          {{ states('sensor.batterie_virtuelle_solde') }}
+        {% else %}
+          {{ [in - out + offset, 0] | max | round(2) }}
+        {% endif %}
+
+    # Détection batterie vide (pour conditionner Battery Power Out)
+    # Optionnel — peut être remplacé par une condition directe sur le solde
+    - name: "Battery Empty"
+      unique_id: "battery_empty_unique"
+      state: >
+        {{ states('sensor.batterie_virtuelle_solde') | float(0) <= 0.1 }}
+
+    # ----------------------------------------------------------
+    # INDEX EXPORT (pour tableau de bord Énergie HA)
+    # ----------------------------------------------------------
+    - name: "Index Export"
+      unique_id: "index_export"
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+      icon: "mdi:flash"
+      state: >
+        {% set prod = states('YOUR_PRODUCTION_SENSOR') | int(0) %}
+        {% set cons = states('YOUR_CONSUMPTION_SENSOR') | int(0) %}
+        {{ ((prod - cons) / 1000) if (prod - cons) > 0 else 0 }}
+
+    # ----------------------------------------------------------
+    # INDEX ENEDIS (façade sur les sensors SQL annuels)
+    # ----------------------------------------------------------
+
+    # Production injectée sur le réseau selon Enedis (année en cours)
+    - name: "Enedis Injection Cumulée"
+      unique_id: enedis_injection_cumulee
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+      state: "{{ states('sensor.linky_production_annee_en_cours') | float(0) }}"
+
+    # Soutirage réseau selon Enedis (année en cours)
+    - name: "Enedis Soutirage Cumulé"
+      unique_id: enedis_soutirage_cumulee
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+      state: "{{ states('sensor.linky_conso_annee_en_cours') | float(0) }}"
+
+    # ----------------------------------------------------------
+    # TARIFS ET COÛTS
+    # ----------------------------------------------------------
+
+    # Prix du kWh effectif selon état de la batterie
+    - name: "Prix kWh Batterie"
+      unique_id: "prix_kwh_batterie"
+      unit_of_measurement: "EUR/kWh"
+      state: >
+        {% set solde = states('sensor.batterie_virtuelle_solde') | float(0) %}
+        {% set p_stock = states('input_number.tarif_destockage') | float(0) %}
+        {% set p_achat = states('input_number.tarif_achat_reseau') | float(0) %}
+        {{ p_stock if solde > 0.1 else p_achat }}
+
+    # Coût mensuel total (abonnement + réseau + batterie)
+    - name: "Cout mensuel Total"
+      unique_id: "cout_total_mensuel"
+      unit_of_measurement: "€"
+      icon: "mdi:currency-eur"
+      availability: >
+        {{ is_number(states('input_number.tarif_destockage')) and
+           is_number(states('input_number.tarif_achat_reseau')) }}
+      state: >
+        {% set p_stock = states('input_number.tarif_destockage') | float(0) %}
+        {% set p_achat = states('input_number.tarif_achat_reseau') | float(0) %}
+        {% set abo_ttc = states('input_number.tarif_abonnement_mensuel_ttc') | float(0) %}
+        {% set opt_ht_kwc = states('input_number.tarif_option_batterie_ht_par_kwc') | float(0) %}
+        {% set kwc_install = states('input_number.installation_puissance_kwc') | float(0) %}
+        {% set import_total = states('sensor.energy_imported_monthly') | float(0) %}
+        {% set depuis_batterie = states('sensor.energy_from_battery_monthly') | float(0) %}
+        {% set cout_option_ttc = kwc_install * opt_ht_kwc * 1.20 %}
+        {% set cost_subscription = abo_ttc + cout_option_ttc %}
+        {% set kwh_achat_reel = [import_total - depuis_batterie, 0] | max %}
+        {% set cost_grid = kwh_achat_reel * p_achat %}
+        {% set cost_battery = depuis_batterie * p_stock %}
+        {{ (cost_subscription + cost_grid + cost_battery) | round(2) }}
+
+    # Coût mensuel lié à l'utilisation de la batterie virtuelle
+    - name: "Cout mensuel Batterie"
+      unique_id: "cout_batterie_mensuel"
+      unit_of_measurement: "€"
+      icon: "mdi:currency-eur"
+      state: >
+        {% set depuis_batterie = states('sensor.energy_from_battery_monthly') | float(0) %}
+        {% set p_stock = states('input_number.tarif_destockage') | float(0) %}
+        {{ (depuis_batterie * p_stock) | round(2) }}
